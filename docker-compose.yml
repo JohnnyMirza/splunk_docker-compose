@@ -1,0 +1,77 @@
+version: '2'
+
+services:
+
+#  vsplunk_uf:
+#    image: busybox
+#    volumes:
+#      - /opt/splunkuf/etc
+#      - /opt/splunkuf/var
+
+  splunk:
+    image: splunk/splunk:latest
+    hostname: splunkenterprise
+    networks: 
+      - splunk
+    volumes:
+      - /opt/splunk/etc:/opt/splunk/etc
+      - /opt/splunk/var:/opt/splunk/var
+    environment:
+      SPLUNK_START_ARGS: --accept-license --answer-yes
+      SPLUNK_ENABLE_LISTEN: 9997
+      SPLUNK_ADD: tcp 1514
+      SPLUNK_DEPLOYMENT_SERVER: splunkenterprise:8089
+    ports:
+      - 8000:8000
+      - 8089:8089
+      - 8088:8088
+      - 9997:9997
+
+  splunkforwarder:
+    image: splunk/universalforwarder:7.0.0-monitor
+    hostname: splunkuf
+    networks: 
+      - splunk
+    volumes:
+      - /opt/splunkuf/var:/opt/splunk/var
+      - /opt/splunkuf/etc:/opt/splunk/etc
+      #- ./apps:/opt/splunk/etc/apps
+      #- ./system:/opt/splunk/etc/systemr
+    environment:
+      SPLUNK_START_ARGS: --accept-license --answer-yes
+      SPLUNK_FORWARD_SERVER: splunkenterprise:9997
+      SPLUNK_CMD: 'splunk set deploy-poll 172.19.0.3:8089 -auth admin:changeme'
+    links:
+      - splunk
+    ports:
+      - 1514:1514
+    logging:
+      driver: splunk
+      options:
+        splunk-token: "5f331d48-a7aa-48da-b19e-e06c794bffce"
+        splunk-url: "http://splunk:8088"
+        splunk-insecureskipverify: "true"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+        labels: "splunkuf"
+
+  nginx:
+    image: nginx
+    hostname: nginx
+    networks:
+      - splunk
+    ports:
+      - 80:80
+    links:
+      - splunk
+    logging:
+      driver: splunk
+      options:
+        splunk-token: "5f331d48-a7aa-48da-b19e-e06c794bffce"
+        splunk-url: "http://172.19.0.3:8088"
+        splunk-insecureskipverify: "true"
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+        labels: "nginx"
+
+
+networks: 
+  splunk:
