@@ -49,7 +49,7 @@ services:
       driver: splunk
       options:
         splunk-token: "5f331d48-a7aa-48da-b19e-e06c794bffce"
-        splunk-url: "http://splunk:8088"
+        splunk-url: "http://172.19.0.3:8088"
         splunk-insecureskipverify: "true"
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         labels: "splunkuf"

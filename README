@@ -1,0 +1,3 @@
+playing with docker-compose for splunk
+Containers include enterprise, universalforwarders, nginx
+automated HTTP Event Collector
